@@ -13,7 +13,8 @@ inputBuff = ''
 secondinputBuff = ''
 
 mode = 'terminal'
-tempmode = 'command'
+
+enteringcommand = false
 
 function termK.start (command)
   --print (command)
@@ -144,13 +145,16 @@ end
 function termK.save()
   if mode == 'edit' then
     love.filesystem.write( rootdir .. '/' .. curdir .. '/' .. editingfile, inputBuff )
-    editingfile = ''
-    mode = 'terminal'
   end
 end
 
+function termK.toterminal()
+  editingfile = ''
+  mode = 'terminal'
+end
+
 function termK.input (t)
-  if mode ~= 'command' then
+  if not enteringcommand then
     terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory] .. t
   else
     terminal.commands = terminal.commands .. t
@@ -161,10 +165,25 @@ function termK.input (t)
       termK.output('K:' .. curdir .. '>' .. inputBuff)
       terminal.inputhistory[#terminal.inputhistory + 1] = ''
       termK.start(inputBuff)
-    elseif mode == 'command' then
-      if terminal.commands:sub(1,-2) == 'Q' then
-        love.event.quit()
+    elseif enteringcommand then
+      if terminal.commands:sub(1,-2) == 'q' then
+        termK.toterminal()
+        
+        inputBuff = ''
+        terminal.inputhistory[#terminal.inputhistory + 1] = ''
+      elseif terminal.commands:sub(1,-2) == 's' then
+        termK.save()
+      elseif terminal.commands:sub(1,-2) == 'e' then
+        mode = 'running'
+        termK.start('CLS')
+        for line in terminal.inputhistory[#terminal.inputhistory]:gmatch("([^\n]*)\n?") do
+          termK.start(line)
+        end
+        termK.output('PRESS ESCAPE TO CONTINUE')
       end
+
+      terminal.commands = ''
+      enteringcommand = false
     end
   else
     inputBuff = terminal.inputhistory[#terminal.inputhistory]

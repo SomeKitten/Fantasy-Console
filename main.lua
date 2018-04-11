@@ -40,29 +40,33 @@ function love.update(dt)
 end
 
 function love.keypressed(key, scancode, isrepeat)
-  if key == 'backspace' then
-    if mode ~= 'command' then
-      terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory]:sub(1, -2)
+  if mode ~= 'running' then
+    if key == 'backspace' then
+      if mode ~= 'command' then
+        terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory]:sub(1, -2)
+        inputBuff = terminal.inputhistory[#terminal.inputhistory]
+      else
+        terminal.commands = terminal.commands:sub(1,-2)
+      end
+    elseif key == 'return' then
+      termK.input('\n')
+    elseif key == 'up' then
+      terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[mathK.clamp(#terminal.inputhistory - 1, 1, #terminal.inputhistory)]:sub(1,-2)
       inputBuff = terminal.inputhistory[#terminal.inputhistory]
+    elseif key == 'lctrl' then
+      enteringcommand = not enteringcommand
+    elseif key == 'escape' then
+      if enteringcommand then
+        love.event.quit()
+      end
     else
-      terminal.commands = terminal.commands:sub(1,-2)
+      keys[key] = true
     end
-  elseif key == 'return' then
-    termK.input('\n')
-  elseif key == 'up' then
-    terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[mathK.clamp(#terminal.inputhistory - 1, 1, #terminal.inputhistory)]:sub(1,-2)
-    inputBuff = terminal.inputhistory[#terminal.inputhistory]
-  elseif key == 'escape' then
-    termK.save()
-    
-    inputBuff = ''
-    terminal.inputhistory[#terminal.inputhistory + 1] = ''
-  elseif key == 'lctrl' then
-    local tempstuff = mode
-    mode = tempmode
-    tempmode = tempstuff
   else
-    keys[key] = true
+    if key == 'escape' then
+      mode = 'edit'
+      termK.start('CLS')
+    end
   end
 end
 
@@ -71,7 +75,9 @@ function love.keyreleased( key, scancode )
 end
 
 function love.textinput(t)
+  if mode ~= 'running' then
     termK.input(t)
+  end
 end
 
 function love.draw()
@@ -92,9 +98,9 @@ function love.draw()
     end
   end
   
-  if mode ~= 'edit' then
+  if mode == 'terminal' then
     love.graphics.printf( 'K:' .. curdir .. '>' .. terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)
-  else
+  elseif mode == 'edit' then
     love.graphics.printf( terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)
   end
 
