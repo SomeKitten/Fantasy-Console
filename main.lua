@@ -2,7 +2,7 @@ require "termK"
 require "mathK"
 
 local function setwindowsize()
-  love.window.setMode(terminal.width * 10, terminal.height * 10, {resizable=false})
+  love.window.setMode(terminal.width * 10, terminal.height * 10 + terminal.lineheight, {resizable=false})
 end
 
 function love.load()
@@ -18,6 +18,7 @@ function love.load()
   terminal.height = 50
   terminal.text = {}
   terminal.top = 20
+  terminal.commands = ''
   terminal.inputhistory = {}
   font = love.graphics.newFont("fff-forward.regular.ttf", fontsize)
   font:setLineHeight( 1.5 )
@@ -40,22 +41,28 @@ end
 
 function love.keypressed(key, scancode, isrepeat)
   if key == 'backspace' then
-    terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory]:sub(1, -2)
-    inputBuff = terminal.inputhistory[#terminal.inputhistory]
+    if mode ~= 'command' then
+      terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory]:sub(1, -2)
+      inputBuff = terminal.inputhistory[#terminal.inputhistory]
+    else
+      terminal.commands = terminal.commands:sub(1,-2)
+    end
   elseif key == 'return' then
     termK.input('\n')
   elseif key == 'up' then
     terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[mathK.clamp(#terminal.inputhistory - 1, 1, #terminal.inputhistory)]:sub(1,-2)
     inputBuff = terminal.inputhistory[#terminal.inputhistory]
+  elseif key == 'escape' then
+    termK.save()
+    
+    inputBuff = ''
+    terminal.inputhistory[#terminal.inputhistory + 1] = ''
+  elseif key == 'lctrl' then
+    local tempstuff = mode
+    mode = tempmode
+    tempmode = tempstuff
   else
     keys[key] = true
-    
-    if keys['lctrl'] and keys['escape'] then
-      termK.save()
-      
-      inputBuff = ''
-      terminal.inputhistory[#terminal.inputhistory + 1] = ''
-    end
   end
 end
 
@@ -85,9 +92,11 @@ function love.draw()
     end
   end
   
-  if mode == 'terminal' then
+  if mode ~= 'edit' then
     love.graphics.printf( 'K:' .. curdir .. '>' .. terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)
-  elseif mode == 'edit' then
+  else
     love.graphics.printf( terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)
   end
+
+  love.graphics.printf( terminal.commands, 20, terminal.height * 10, terminal.width * 10 - 40)
 end

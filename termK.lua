@@ -10,8 +10,10 @@ tempvars = {}
 writingto = ''
 
 inputBuff = ''
+secondinputBuff = ''
 
 mode = 'terminal'
+tempmode = 'command'
 
 function termK.start (command)
   --print (command)
@@ -148,12 +150,22 @@ function termK.save()
 end
 
 function termK.input (t)
-  terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory] .. t
+  if mode ~= 'command' then
+    terminal.inputhistory[#terminal.inputhistory] = terminal.inputhistory[#terminal.inputhistory] .. t
+  else
+    terminal.commands = terminal.commands .. t
+  end
   
-  if t == '\n' and mode == 'terminal' then
-    termK.output('K:' .. curdir .. '>' .. inputBuff)
-    terminal.inputhistory[#terminal.inputhistory + 1] = ''
-    termK.start(inputBuff)
+  if t == '\n' then
+    if mode == 'terminal' then
+      termK.output('K:' .. curdir .. '>' .. inputBuff)
+      terminal.inputhistory[#terminal.inputhistory + 1] = ''
+      termK.start(inputBuff)
+    elseif mode == 'command' then
+      if terminal.commands:sub(1,-2) == 'Q' then
+        love.event.quit()
+      end
+    end
   else
     inputBuff = terminal.inputhistory[#terminal.inputhistory]
   end
