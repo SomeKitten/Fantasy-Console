@@ -13,6 +13,9 @@ inputBuff = ''
 secondinputBuff = ''
 
 mode = 'terminal'
+oldmode = ''
+
+program = nil
 
 enteringcommand = false
 
@@ -124,6 +127,16 @@ function termK.evalcom (command, args)
       
       mode = 'edit'
     end
+  elseif command == 'INPUT' then
+    if secondinputBuff == '' then
+      secondinputBuff = terminal.inputhistory[#terminal.inputhistory]
+      inputBuff = ''
+    end
+
+    oldmode = mode
+    mode = 'input'
+    writingto = mathK.tabletostring(args)
+    coroutine.yield(program)
   else
     local out = tempvars[mathK.tabletostring(mathK.tconcat({command}, args))]
     
@@ -161,10 +174,20 @@ function termK.input (t)
   end
   
   if t == '\n' then
-    if mode == 'terminal' then
+    if mode == 'terminal' and not enteringcommand then
       termK.output('K:' .. curdir .. '>' .. inputBuff)
       terminal.inputhistory[#terminal.inputhistory + 1] = ''
       termK.start(inputBuff)
+    elseif mode == 'input' then
+      termK.output('>' .. inputBuff)
+      tempvars[writingto] = inputBuff
+      mode = oldmode
+      inputBuff = secondinputBuff
+      terminal.inputhistory[#terminal.inputhistory + 1] = secondinputBuff
+
+      if program ~= nil then
+        coroutine.resume(program)
+      end
     elseif enteringcommand then
       if terminal.commands:sub(1,-2) == 'q' then
         termK.toterminal()
@@ -174,12 +197,21 @@ function termK.input (t)
       elseif terminal.commands:sub(1,-2) == 's' then
         termK.save()
       elseif terminal.commands:sub(1,-2) == 'e' then
-        mode = 'running'
-        termK.start('CLS')
-        for line in terminal.inputhistory[#terminal.inputhistory]:gmatch("([^\n]*)\n?") do
-          termK.start(line)
-        end
-        termK.output('PRESS ESCAPE TO CONTINUE')
+        program = coroutine.create(function ()
+          secondinputBuff = terminal.inputhistory[#terminal.inputhistory]
+          terminal.inputhistory[#terminal.inputhistory] = ''
+          inputBuff = ''
+          mode = 'running'
+          termK.start('CLS')
+  
+          executablelines, _ = love.filesystem.read( rootdir .. '/' .. curdir .. '/' .. editingfile )
+          for line in executablelines:gmatch("([^\n]*)\n?") do
+            termK.start(line)
+          end
+  
+          termK.output('PRESS ESCAPE TO CONTINUE')
+        end)
+        coroutine.resume(program)
       end
 
       terminal.commands = ''

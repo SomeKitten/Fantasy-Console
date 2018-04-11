@@ -66,6 +66,8 @@ function love.keypressed(key, scancode, isrepeat)
     if key == 'escape' then
       mode = 'edit'
       termK.start('CLS')
+      inputBuff, _ = love.filesystem.read( rootdir .. '/' .. curdir .. '/' .. editingfile )
+      terminal.inputhistory[#terminal.inputhistory] = inputBuff
     end
   end
 end
@@ -102,6 +104,8 @@ function love.draw()
     love.graphics.printf( 'K:' .. curdir .. '>' .. terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)
   elseif mode == 'edit' then
     love.graphics.printf( terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)
+  elseif mode == 'input' then
+    love.graphics.printf( '>' .. terminal.inputhistory[#terminal.inputhistory], terminal.cursor.x, terminal.cursor.y, terminal.width * 10 - 40)    
   end
 
   love.graphics.printf( terminal.commands, 20, terminal.height * 10, terminal.width * 10 - 40)
