@@ -44,7 +44,7 @@ commands['SET'] = function(args)
 end
 
 commands['HELP'] = function(args)
-    termK.output('COMMANDS ARE -- CLS   HELP   PRINT   SET')
+    termK.output('COMMANDS ARE -- HELP,   CLS,   PRINT <variable or value>,   SET <variable> <value>,   LS,   MKDIR <directory name>,   MV <starting file> [ending file (leave empty for delete)],   CD <directory>,   EDIT <file>,   INPUT <variable>,   RUN <file>')
     return true
 end
 
