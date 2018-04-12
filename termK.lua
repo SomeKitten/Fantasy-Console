@@ -21,8 +21,6 @@ running = false
 enteringcommand = false
 
 function termK.start (command)
-  --print (command)
-  
   inputBuff = ''
   local chunks = {}
   for i in string.gmatch(command, "%S+") do
@@ -63,21 +61,7 @@ function termK.input (t)
   end
   
   if t == '\n' then
-    if mode == 'terminal' and not enteringcommand then
-      termK.output('K:' .. curdir .. '>' .. inputBuff)
-      terminal.inputhistory[#terminal.inputhistory + 1] = ''
-      termK.start(inputBuff)
-    elseif mode == 'input' then
-      termK.output('>' .. inputBuff)
-      tempvars[writingto] = inputBuff
-      mode = oldmode
-      inputBuff = ''
-      terminal.inputhistory[#terminal.inputhistory + 1] = ''
-
-      if program ~= nil then
-        coroutine.resume(program)
-      end
-    elseif enteringcommand then
+    if enteringcommand then
       if terminal.commands:sub(1,-2) == 'q' then
         termK.toterminal()
         
@@ -109,6 +93,20 @@ function termK.input (t)
 
       terminal.commands = ''
       enteringcommand = false
+    elseif mode == 'terminal' and not enteringcommand then
+      termK.output('K:' .. curdir .. '>' .. inputBuff)
+      terminal.inputhistory[#terminal.inputhistory + 1] = ''
+      termK.start(inputBuff)
+    elseif mode == 'input' then
+      termK.output('>' .. inputBuff)
+      tempvars[writingto] = inputBuff
+      mode = oldmode
+      inputBuff = ''
+      terminal.inputhistory[#terminal.inputhistory + 1] = ''
+
+      if program ~= nil then
+        coroutine.resume(program)
+      end
     end
   else
     inputBuff = terminal.inputhistory[#terminal.inputhistory]

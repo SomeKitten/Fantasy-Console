@@ -107,6 +107,12 @@ commands['EDIT'] = function(args)
       
       mode = 'edit'
     end
+
+    running = false
+    
+    local oldprogram = program
+    program = nil
+    coroutine.yield(oldprogram)
 end
 
 commands['INPUT'] = function(args)
