@@ -68,8 +68,7 @@ function love.keypressed(key, scancode, isrepeat)
     end
   else
     if key == 'escape' then
-      running = false
-      mode = 'edit'
+      mode = prerunmode
       termK.start('CLS')
       inputBuff, _ = love.filesystem.read( rootdir .. '/' .. curdir .. '/' .. editingfile )
       terminal.inputhistory[#terminal.inputhistory] = inputBuff

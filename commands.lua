@@ -109,7 +109,7 @@ commands['EDIT'] = function(args)
     end
 
     running = false
-    
+
     local oldprogram = program
     program = nil
     coroutine.yield(oldprogram)
@@ -120,6 +120,35 @@ commands['INPUT'] = function(args)
     mode = 'input'
     writingto = mathK.tabletostring(args)
     coroutine.yield(program)
+end
+
+commands['RUN'] = function(args)
+    info = love.filesystem.getInfo( rootdir .. '/' .. curdir .. '/' .. mathK.tabletostring(args) )
+    if info == nil then
+        return errorcodes[1]
+    end
+
+    prerunmode = mode
+
+    running = true
+
+    terminal.commands = ''
+    enteringcommand = false
+
+    program = coroutine.create(function ()
+        secondinputBuff = terminal.inputhistory[#terminal.inputhistory]
+        terminal.inputhistory[#terminal.inputhistory] = ''
+        inputBuff = ''
+        termK.start('CLS')
+
+        local executablelines, _ = love.filesystem.read( rootdir .. '/' .. curdir .. '/' .. mathK.tabletostring(args) )
+        for line in executablelines:gmatch("([^\n]*)\n?") do
+            termK.start(line)
+        end
+
+        termK.output('PRESS ESCAPE TO CONTINUE')
+    end)
+    coroutine.resume(program)
 end
 
 DEFAULT_HANDLE = function(command, args)

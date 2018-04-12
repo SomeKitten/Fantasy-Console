@@ -4,6 +4,7 @@ errorcodes = {'ERROR CODE:1 (TRIED TO USE AN EMPTY VALUE)'}
 rootdir = 'ConsoleRoot'
 curdir = '/'
 
+prerunmode = ''
 editingfile = ''
 
 tempvars = {}
@@ -70,6 +71,8 @@ function termK.input (t)
       elseif terminal.commands:sub(1,-2) == 's' then
         termK.save()
       elseif terminal.commands:sub(1,-2) == 'e' then
+        prerunmode = mode
+
         running = true
 
         terminal.commands = ''
@@ -81,7 +84,7 @@ function termK.input (t)
           inputBuff = ''
           termK.start('CLS')
   
-          executablelines, _ = love.filesystem.read( rootdir .. '/' .. curdir .. '/' .. editingfile )
+          local executablelines, _ = love.filesystem.read( rootdir .. '/' .. curdir .. '/' .. editingfile )
           for line in executablelines:gmatch("([^\n]*)\n?") do
             termK.start(line)
           end
